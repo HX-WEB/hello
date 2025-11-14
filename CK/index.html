@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>千万别走到终点！</title>
+<style>
+    body {
+        background:#000;
+        color:white;
+        text-align:center;
+        font-family:Arial;
+        padding-top:40px;
+    }
+
+    h4{
+        cursor:pointer;
+        font-size:28px;
+        display:inline-block;
+        padding:10px 20px;
+        border:2px solid white;
+        border-radius:10px;
+        transition:.2s;
+    }
+    h4:hover{
+        color:red;
+        border-color:red;
+    }
+
+    .board{
+        width:600px;
+        margin:40px auto;
+        display:flex;
+        justify-content:space-between;
+    }
+    .cell{
+        width:80px;
+        height:80px;
+        background:linear-gradient(to right,#bbb,#446);
+        border-radius:8px;
+    }
+
+    #player{
+        width:70px;
+        height:70px;
+        position:absolute;
+        top:350px;
+        left:420px;
+        transition:left .35s ease;
+    }
+
+    /* 恐怖图 */
+    #scare{
+        display:none;
+        position:fixed;
+        left:0;top:0;
+        width:100%;
+        height:100%;
+        object-fit:cover;
+        z-index:999;
+        animation:fadeIn .4s forwards;
+    }
+    @keyframes fadeIn{
+        from{ opacity:0; }
+        to{ opacity:1; }
+    }
+</style>
+</head>
+
+<body>
+    <h4 id="rollBtn">掷骰子 🎲</h4>
+
+    <p id="msg">你随机选中的数字是：？</p>
+
+    <div class="board">
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+    </div>
+
+    <img id="player" src="./img/火神.png">
+    <audio id="sound" src="bird.wav"></audio>
+
+    <img id="scare" src="./img/恐怖.png" />
+
+<script>
+const rollBtn = document.getElementById("rollBtn");
+const msg = document.getElementById("msg");
+const player = document.getElementById("player");
+const cells = document.getElementsByClassName("cell");
+const scare = document.getElementById("scare");
+const sound = document.getElementById("sound");
+
+let currentPos = 0;    // 当前落在第几格
+let locked = false;    // 防止重复点击
+
+rollBtn.onclick = function(){
+    if(locked) return;   // 防止多次点击
+    locked = true;
+
+    let num = Math.floor(Math.random()*10);
+    msg.innerHTML = `你随机选中的数字是：${num}`;
+
+    // 50% 触发恐怖（和原版一样）
+    if(num >= 5) num = 5;
+
+    let target = Math.min(currentPos + num, 5);  
+    moveToCell(target, num);
+};
+
+
+function moveToCell(target, rolledNum){
+    let i = currentPos;
+
+    function step(){
+        if(i > target){
+            // 到达最终点
+            currentPos = target;
+            checkScare(rolledNum);
+            locked = false;
+            return;
+        }
+
+        let x = cells[i].offsetLeft;
+        player.style.left = (x + 10) + "px";  // +10 微调位置
+        i++;
+
+        setTimeout(step, 350);  // 步进动画
+    }
+
+    step();
+}
+
+
+// 如果走到第6格（= 数字 >=5）——触发恐怖
+function checkScare(rolledNum){
+    if(rolledNum == 5){
+        scare.style.display = "block";
+        sound.play();
+
+        setTimeout(()=>{
+            scare.style.display = "none";
+            location.reload();   // 重新开始
+        },2500);
+    }
+}
+</script>
+
+</body>
+</html>
